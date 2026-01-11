@@ -39,6 +39,9 @@
         export TMUX_CONF="$TMUX_CONFIG_DIR/.tmux.conf"
         export TMUX_CONF_LOCAL="$TMUX_CONFIG_DIR/.tmux.conf.local"
         
+        # Add perl to PATH for tmux plugins
+        export PATH="${pkgs.perl}/bin:$PATH"
+        
         exec ${pkgs.tmux}/bin/tmux -f "$TMUX_CONF" "$@"
       '';
       
@@ -62,11 +65,17 @@
         echo "✓ Config synced to $TMUX_CONFIG_DIR"
       '';
       
+      # Combine tmux and perl into a buildEnv
+      tmuxPackage = pkgs.buildEnv {
+        name = "tmux-with-deps";
+        paths = [ tmuxWithConfig pkgs.perl ];
+      };
+      
     in
     {
       packages.${system} = {
-        default = tmuxWithConfig;
-        tmux = tmuxWithConfig;
+        default = tmuxPackage;
+        tmux = tmuxPackage;
         sync-tmux-config = syncConfig;
       };
       
@@ -82,7 +91,7 @@
       };
       
       devShells.${system}.default = pkgs.mkShell {
-        packages = [ tmuxWithConfig syncConfig ];
+        packages = [ tmuxPackage syncConfig ];
         
         shellHook = ''
           echo "Tmux environment"
