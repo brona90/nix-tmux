@@ -18,21 +18,8 @@
     },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs",
-        "tmux-config": "tmux-config"
+        "nixpkgs": "nixpkgs"
       }
-    },
-    "tmux-config": {
-      "flake": false,
-      "locked": {
-        "path": "./tmux-config",
-        "type": "path"
-      },
-      "original": {
-        "path": "./tmux-config",
-        "type": "path"
-      },
-      "parent": []
     }
   },
   "root": "root",
