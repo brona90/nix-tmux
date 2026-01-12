@@ -14,9 +14,12 @@
       tmuxConfig = pkgs.stdenv.mkDerivation {
         name = "tmux-config";
         src = ./tmux-config;
+        dontBuild = true;
         installPhase = ''
           mkdir -p $out
-          cp -r $src/* $out/
+          if [ -d "$src" ]; then
+            cp -r $src/. $out/
+          fi
         '';
       };
       
