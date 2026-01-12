@@ -3,17 +3,22 @@
   
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    
-    tmux-config = {
-      url = "path:./tmux-config";
-      flake = false;
-    };
   };
   
-  outputs = { self, nixpkgs, tmux-config, ... }:
+  outputs = { self, nixpkgs, ... }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
+      
+      # Copy tmux-config to the Nix store instead of using a flake input
+      tmuxConfig = pkgs.stdenv.mkDerivation {
+        name = "tmux-config";
+        src = ./tmux-config;
+        installPhase = ''
+          mkdir -p $out
+          cp -r $src/* $out/
+        '';
+      };
       
       # Create a wrapper that sets up tmux with our config
       tmuxWithConfig = pkgs.writeShellScriptBin "tmux" ''
@@ -24,12 +29,12 @@
         if [ ! -f "$TMUX_CONFIG_DIR/.tmux.conf" ]; then
           echo "Setting up tmux config for first time..."
           mkdir -p "$TMUX_CONFIG_DIR"
-          cp -f "${tmux-config}/.tmux.conf" "$TMUX_CONFIG_DIR/.tmux.conf"
-          cp -f "${tmux-config}/.tmux.conf.local" "$TMUX_CONFIG_DIR/.tmux.conf.local"
+          cp -f "${tmuxConfig}/.tmux.conf" "$TMUX_CONFIG_DIR/.tmux.conf"
+          cp -f "${tmuxConfig}/.tmux.conf.local" "$TMUX_CONFIG_DIR/.tmux.conf.local"
           
-          if [ -d "${tmux-config}/plugins" ]; then
+          if [ -d "${tmuxConfig}/plugins" ]; then
             mkdir -p "$TMUX_CONFIG_DIR/plugins"
-            cp -rf "${tmux-config}/plugins/"* "$TMUX_CONFIG_DIR/plugins/"
+            cp -rf "${tmuxConfig}/plugins/"* "$TMUX_CONFIG_DIR/plugins/"
           fi
           
           echo "✓ Config initialized in $TMUX_CONFIG_DIR"
@@ -48,7 +53,7 @@
       # Script to sync config from repo to writable location
       syncConfig = pkgs.writeShellScriptBin "sync-tmux-config" ''
         TMUX_CONFIG_DIR="$HOME/.config/tmux"
-        SOURCE_DIR="${tmux-config}"
+        SOURCE_DIR="${tmuxConfig}"
         
         echo "Syncing tmux config from repo to $TMUX_CONFIG_DIR..."
         
