@@ -147,5 +147,7 @@
           };
         }
       );
+
+      formatter = forAllSystems (system: (pkgsFor system).nixfmt);
     };
 }
