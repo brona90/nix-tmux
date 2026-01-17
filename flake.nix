@@ -46,8 +46,11 @@
             # Add perl to PATH for tmux plugins
             export PATH="${pkgs.perl}/bin:$PATH"
 
+            # Set TMUX_CONF so the .local file gets sourced correctly
+            export TMUX_CONF="${tmuxConfig}/.tmux.conf"
+
             # Use config directly from Nix store (immutable)
-            exec ${pkgs.tmux}/bin/tmux -f "${tmuxConfig}/.tmux.conf" "$@"
+            exec ${pkgs.tmux}/bin/tmux -f "$TMUX_CONF" "$@"
           '';
 
           # Combine tmux and perl into a buildEnv
